@@ -1,0 +1,368 @@
+What is measured (median of 5 runs, milliseconds):
+  compute - only the algorithm call, the data is already in RAM;
+  total   - reading the text file, filling RAM, computing and forming the result line
+Own algorithm: K is the number of threads, speedup is relative to K = 1.
+Hardware threads: 16
+Build: O2
+
+==== Predicate simple: x <= 0 ====
+
+==== Task 1: library none_of without a policy ====
+
+sequence               |    compute, ms |      total, ms | result
+N = 1000               |         0.0037 |         0.3609 | true
+N = 10000              |         0.0337 |         3.0750 | true
+N = 100000             |         0.3349 |        30.6859 | true
+N = 1000000            |         3.4257 |       328.0406 | true
+N = 10000000           |        40.4174 |      4633.7816 | true
+
+==== Task 2: library none_of with execution policies | N = 1000 ====
+
+policy                 |    compute, ms |      total, ms | result
+execution::seq         |         0.0064 |         1.0486 | true
+execution::unseq       |         0.0041 |         0.6621 | true
+execution::par         |         0.0462 |         0.7324 | true
+execution::par_unseq   |         0.0265 |         0.6134 | true
+
+==== Task 2: library none_of with execution policies | N = 10000 ====
+
+policy                 |    compute, ms |      total, ms | result
+execution::seq         |         0.0364 |         6.4007 | true
+execution::unseq       |         0.0342 |         5.0673 | true
+execution::par         |         0.1223 |         7.5555 | true
+execution::par_unseq   |         0.0525 |         3.6403 | true
+
+==== Task 2: library none_of with execution policies | N = 100000 ====
+
+policy                 |    compute, ms |      total, ms | result
+execution::seq         |         0.3515 |        43.5489 | true
+execution::unseq       |         0.3173 |        44.4087 | true
+execution::par         |         0.3568 |        52.9142 | true
+execution::par_unseq   |         0.3632 |        48.6843 | true
+
+==== Task 2: library none_of with execution policies | N = 1000000 ====
+
+policy                 |    compute, ms |      total, ms | result
+execution::seq         |         3.4144 |       492.1356 | true
+execution::unseq       |         3.1433 |       476.5768 | true
+execution::par         |         1.0733 |       486.4712 | true
+execution::par_unseq   |         1.2331 |       480.6511 | true
+
+==== Task 2: library none_of with execution policies | N = 10000000 ====
+
+policy                 |    compute, ms |      total, ms | result
+execution::seq         |        31.0287 |      4940.4998 | true
+execution::unseq       |        28.2104 |      3524.7747 | true
+execution::par         |         5.0041 |      3138.4345 | true
+execution::par_unseq   |         4.8050 |      3116.7982 | true
+
+==== Task 3: own parallel none_of | N = 1000 ====
+
+Own parallel none_of
+    K |    compute, ms |      total, ms |  speedup
+    1 |         0.3139 |         0.7267 |     1.00
+    2 |         0.3268 |         0.7208 |     0.96
+    3 |         0.2782 |         0.6461 |     1.13  <-- best
+    4 |         0.3036 |         0.6973 |     1.03
+    5 |         0.3007 |         0.6961 |     1.04
+    6 |         0.3598 |         0.7408 |     0.87
+    7 |         0.5302 |         0.8940 |     0.59
+    8 |         0.4470 |         0.8425 |     0.70
+    9 |         0.4632 |         0.8450 |     0.68
+   10 |         0.5374 |         0.9358 |     0.58
+   11 |         0.5475 |         0.9272 |     0.57
+   12 |         0.5524 |         0.9286 |     0.57
+   13 |         0.5408 |         0.9458 |     0.58
+   14 |         0.7182 |         1.1122 |     0.44
+   15 |         0.6025 |         0.9968 |     0.52
+   16 |         0.6750 |         1.0698 |     0.47
+   32 |         1.2641 |         1.6512 |     0.25
+   64 |         2.4683 |         2.8815 |     0.13
+  128 |         4.6601 |         5.0998 |     0.07
+Best K = 3 (by compute time): 1.13 times faster than K = 1; hardware threads = 16; K / threads = 0.19
+For K from 16 to 128: the compute time changes by +0.0356 ms per added thread on average
+
+==== Task 3: own parallel none_of | N = 10000 ====
+
+Own parallel none_of
+    K |    compute, ms |      total, ms |  speedup
+    1 |         0.1647 |         3.4270 |     1.00  <-- best
+    2 |         0.2275 |         3.4969 |     0.72
+    3 |         0.5357 |         3.6174 |     0.31
+    4 |         0.4896 |         3.6706 |     0.34
+    5 |         0.6945 |         3.8502 |     0.24
+    6 |         0.6484 |         3.8560 |     0.25
+    7 |         0.6404 |         3.9072 |     0.26
+    8 |         1.0068 |         4.1530 |     0.16
+    9 |         1.0175 |         4.1571 |     0.16
+   10 |         1.2053 |         4.4717 |     0.14
+   11 |         1.1262 |         4.3112 |     0.15
+   12 |         1.1184 |         4.4967 |     0.15
+   13 |         1.1382 |         4.2475 |     0.14
+   14 |         0.9378 |         4.2097 |     0.18
+   15 |         1.1387 |         4.4907 |     0.14
+   16 |         0.9899 |         4.2568 |     0.17
+   32 |         1.5503 |         4.8000 |     0.11
+   64 |         2.7224 |         5.9703 |     0.06
+  128 |         4.7989 |         8.1031 |     0.03
+Best K = 1 (by compute time): 1.00 times faster than K = 1; hardware threads = 16; K / threads = 0.06
+For K from 16 to 128: the compute time changes by +0.0340 ms per added thread on average
+
+==== Task 3: own parallel none_of | N = 100000 ====
+
+Own parallel none_of
+    K |    compute, ms |      total, ms |  speedup
+    1 |         0.5805 |        31.5470 |     1.00
+    2 |         0.5089 |        32.5291 |     1.14  <-- best
+    3 |         0.6253 |        32.4124 |     0.93
+    4 |         0.5830 |        32.3997 |     1.00
+    5 |         0.5804 |        32.4669 |     1.00
+    6 |         0.9027 |        32.4702 |     0.64
+    7 |         0.8530 |        31.1124 |     0.68
+    8 |         0.9304 |        31.3845 |     0.62
+    9 |         1.0953 |        31.5923 |     0.53
+   10 |         1.1285 |        31.5155 |     0.51
+   11 |         1.2637 |        31.8039 |     0.46
+   12 |         1.1859 |        31.5422 |     0.49
+   13 |         1.3238 |        32.4769 |     0.44
+   14 |         1.7797 |        32.1417 |     0.33
+   15 |         1.5868 |        31.6326 |     0.37
+   16 |         1.4074 |        31.6800 |     0.41
+   32 |         2.1767 |        32.7755 |     0.27
+   64 |         3.6813 |        34.4100 |     0.16
+  128 |         7.5322 |        38.7007 |     0.08
+Best K = 2 (by compute time): 1.14 times faster than K = 1; hardware threads = 16; K / threads = 0.12
+For K from 16 to 128: the compute time changes by +0.0547 ms per added thread on average
+
+==== Task 3: own parallel none_of | N = 1000000 ====
+
+Own parallel none_of
+    K |    compute, ms |      total, ms |  speedup
+    1 |         3.0443 |       311.2161 |     1.00
+    2 |         1.7656 |       308.7461 |     1.72
+    3 |         1.5092 |       308.2269 |     2.02
+    4 |         1.4931 |       308.4253 |     2.04  <-- best
+    5 |         1.6708 |       309.2568 |     1.82
+    6 |         1.6255 |       309.3568 |     1.87
+    7 |         1.5954 |       308.8538 |     1.91
+    8 |         1.5951 |       308.7966 |     1.91
+    9 |         1.6706 |       309.3706 |     1.82
+   10 |         1.7772 |       310.6418 |     1.71
+   11 |         1.5883 |       310.9241 |     1.92
+   12 |         1.7855 |       307.6690 |     1.71
+   13 |         2.1612 |       309.4026 |     1.41
+   14 |         1.8886 |       308.9339 |     1.61
+   15 |         2.1130 |       310.5434 |     1.44
+   16 |         2.3526 |       308.7421 |     1.29
+   32 |         3.5092 |       308.7111 |     0.87
+   64 |         4.7087 |       320.4660 |     0.65
+  128 |         6.5142 |       311.6013 |     0.47
+Best K = 4 (by compute time): 2.04 times faster than K = 1; hardware threads = 16; K / threads = 0.25
+For K from 16 to 128: the compute time changes by +0.0372 ms per added thread on average
+
+==== Task 3: own parallel none_of | N = 10000000 ====
+
+Own parallel none_of
+    K |    compute, ms |      total, ms |  speedup
+    1 |        32.5101 |      4750.5834 |     1.00
+    2 |        20.5618 |      4514.0510 |     1.58
+    3 |        12.2453 |      4330.1722 |     2.65
+    4 |        11.4163 |      4325.3696 |     2.85
+    5 |         8.8603 |      4508.6444 |     3.67
+    6 |         9.0951 |      4326.8189 |     3.57
+    7 |         6.0422 |      3807.9481 |     5.38
+    8 |         8.0876 |      4416.6827 |     4.02
+    9 |         7.1124 |      4191.8776 |     4.57
+   10 |         6.4009 |      4493.8156 |     5.08
+   11 |         6.4047 |      4375.1620 |     5.08
+   12 |         7.4906 |      4340.1298 |     4.34
+   13 |         6.6619 |      4283.7148 |     4.88
+   14 |         7.3340 |      4415.4192 |     4.43
+   15 |         6.0267 |      4283.9588 |     5.39
+   16 |         6.0167 |      4342.2439 |     5.40
+   32 |         5.1873 |      4240.0728 |     6.27  <-- best
+   64 |         6.1714 |      4355.3972 |     5.27
+  128 |        11.2561 |      4165.6881 |     2.89
+Best K = 32 (by compute time): 6.27 times faster than K = 1; hardware threads = 16; K / threads = 2.00
+For K from 16 to 128: the compute time changes by +0.0468 ms per added thread on average
+
+==== Predicate complex: arithmetic loop ====
+
+==== Task 1: library none_of without a policy ====
+
+sequence               |    compute, ms |      total, ms | result
+N = 1000               |         0.0775 |         0.4355 | true
+N = 10000              |         1.1824 |         6.9888 | true
+N = 100000             |        10.6941 |        56.6264 | true
+N = 1000000            |        94.4037 |       531.3905 | true
+N = 10000000           |       935.3902 |      5216.8985 | true
+
+==== Task 2: library none_of with execution policies | N = 1000 ====
+
+policy                 |    compute, ms |      total, ms | result
+execution::seq         |         0.0874 |         0.9260 | true
+execution::unseq       |         0.0785 |         0.5006 | true
+execution::par         |         0.1599 |         0.7362 | true
+execution::par_unseq   |         0.0854 |         0.4799 | true
+
+==== Task 2: library none_of with execution policies | N = 10000 ====
+
+policy                 |    compute, ms |      total, ms | result
+execution::seq         |         0.8637 |         7.2011 | true
+execution::unseq       |         0.9448 |         5.2514 | true
+execution::par         |         0.4598 |         4.3524 | true
+execution::par_unseq   |         0.4586 |         6.5629 | true
+
+==== Task 2: library none_of with execution policies | N = 100000 ====
+
+policy                 |    compute, ms |      total, ms | result
+execution::seq         |         9.4160 |        52.1445 | true
+execution::unseq       |         9.1679 |        47.7316 | true
+execution::par         |         1.9900 |        56.3039 | true
+execution::par_unseq   |         2.2760 |        39.8355 | true
+
+==== Task 2: library none_of with execution policies | N = 1000000 ====
+
+policy                 |    compute, ms |      total, ms | result
+execution::seq         |        92.1279 |       492.9589 | true
+execution::unseq       |        91.4922 |       498.3907 | true
+execution::par         |        10.2796 |       439.9532 | true
+execution::par_unseq   |         9.5912 |       427.8906 | true
+
+==== Task 2: library none_of with execution policies | N = 10000000 ====
+
+policy                 |    compute, ms |      total, ms | result
+execution::seq         |       961.9165 |      5145.0453 | true
+execution::unseq       |       952.4022 |      5226.2798 | true
+execution::par         |        73.2089 |      4496.8867 | true
+execution::par_unseq   |        76.8704 |      4710.7236 | true
+
+==== Task 3: own parallel none_of | N = 1000 ====
+
+Own parallel none_of
+    K |    compute, ms |      total, ms |  speedup
+    1 |         0.4444 |         1.1839 |     1.00
+    2 |         0.4384 |         1.1449 |     1.01  <-- best
+    3 |         0.5257 |         1.2496 |     0.85
+    4 |         0.4811 |         1.1753 |     0.92
+    5 |         0.4765 |         0.9005 |     0.93
+    6 |         0.5912 |         1.2738 |     0.75
+    7 |         0.6379 |         1.3673 |     0.70
+    8 |         0.6531 |         1.3930 |     0.68
+    9 |         0.6553 |         1.4410 |     0.68
+   10 |         0.7531 |         1.4033 |     0.59
+   11 |         0.7794 |         1.5131 |     0.57
+   12 |         0.8455 |         1.5617 |     0.53
+   13 |         0.7913 |         1.4696 |     0.56
+   14 |         0.9729 |         1.6977 |     0.46
+   15 |         0.9358 |         1.6033 |     0.47
+   16 |         1.0609 |         1.8000 |     0.42
+   32 |         2.0185 |         2.7009 |     0.22
+   64 |         3.4823 |         4.1394 |     0.13
+  128 |         6.5653 |         7.3336 |     0.07
+Best K = 2 (by compute time): 1.01 times faster than K = 1; hardware threads = 16; K / threads = 0.12
+For K from 16 to 128: the compute time changes by +0.0491 ms per added thread on average
+
+==== Task 3: own parallel none_of | N = 10000 ====
+
+Own parallel none_of
+    K |    compute, ms |      total, ms |  speedup
+    1 |         1.2483 |         7.2466 |     1.00
+    2 |         0.6987 |         6.3973 |     1.79  <-- best
+    3 |         0.7060 |         5.8032 |     1.77
+    4 |         0.7508 |         6.7831 |     1.66
+    5 |         0.8524 |         4.6001 |     1.46
+    6 |         0.9161 |         6.6115 |     1.36
+    7 |         0.8834 |         7.2227 |     1.41
+    8 |         0.8487 |         6.7752 |     1.47
+    9 |         1.1851 |         6.5788 |     1.05
+   10 |         1.1628 |         6.8815 |     1.07
+   11 |         1.2450 |         8.2734 |     1.00
+   12 |         1.2944 |         5.2253 |     0.96
+   13 |         1.0784 |         5.2144 |     1.16
+   14 |         1.3414 |         6.8014 |     0.93
+   15 |         1.2841 |         5.9102 |     0.97
+   16 |         1.1763 |         6.0808 |     1.06
+   32 |         2.0574 |         8.1364 |     0.61
+   64 |         3.9376 |         8.8336 |     0.32
+  128 |         6.6584 |        12.7399 |     0.19
+Best K = 2 (by compute time): 1.79 times faster than K = 1; hardware threads = 16; K / threads = 0.12
+For K from 16 to 128: the compute time changes by +0.0489 ms per added thread on average
+
+==== Task 3: own parallel none_of | N = 100000 ====
+
+Own parallel none_of
+    K |    compute, ms |      total, ms |  speedup
+    1 |         8.9839 |        47.1620 |     1.00
+    2 |         4.5661 |        44.4742 |     1.97
+    3 |         3.2668 |        40.7393 |     2.75
+    4 |         2.9359 |        44.0868 |     3.06
+    5 |         2.6629 |        54.4117 |     3.37
+    6 |         2.6858 |        54.3096 |     3.34
+    7 |         2.8539 |        60.3663 |     3.15
+    8 |         2.5540 |        53.2215 |     3.52
+    9 |         2.6623 |        56.4321 |     3.37
+   10 |         2.4072 |        58.1855 |     3.73
+   11 |         2.4638 |        57.7700 |     3.65
+   12 |         2.5476 |        59.9387 |     3.53
+   13 |         2.4021 |        55.1935 |     3.74
+   14 |         2.2769 |        53.0245 |     3.95  <-- best
+   15 |         2.4281 |        57.6480 |     3.70
+   16 |         2.5026 |        56.7954 |     3.59
+   32 |         3.2703 |        56.1241 |     2.75
+   64 |         5.0292 |        60.7538 |     1.79
+  128 |         6.9218 |        60.0951 |     1.30
+Best K = 14 (by compute time): 3.95 times faster than K = 1; hardware threads = 16; K / threads = 0.88
+For K from 16 to 128: the compute time changes by +0.0395 ms per added thread on average
+
+==== Task 3: own parallel none_of | N = 1000000 ====
+
+Own parallel none_of
+    K |    compute, ms |      total, ms |  speedup
+    1 |        97.6470 |       563.4316 |     1.00
+    2 |        47.2781 |       529.4095 |     2.07
+    3 |        32.6328 |       485.2712 |     2.99
+    4 |        25.0545 |       459.8096 |     3.90
+    5 |        19.7096 |       489.2071 |     4.95
+    6 |        17.7728 |       534.9479 |     5.49
+    7 |        15.1596 |       532.3164 |     6.44
+    8 |        13.3544 |       490.4215 |     7.31
+    9 |        13.1311 |       464.8248 |     7.44
+   10 |        12.4603 |       519.2544 |     7.84
+   11 |        13.0503 |       511.3568 |     7.48
+   12 |        10.3168 |       517.9876 |     9.46
+   13 |        11.7645 |       483.4188 |     8.30
+   14 |        10.2533 |       544.4763 |     9.52
+   15 |        11.1413 |       493.1386 |     8.76
+   16 |        10.7300 |       518.3514 |     9.10
+   32 |        10.1731 |       553.9044 |     9.60  <-- best
+   64 |        10.3793 |       567.4976 |     9.41
+  128 |        11.9755 |       589.0411 |     8.15
+Best K = 32 (by compute time): 9.60 times faster than K = 1; hardware threads = 16; K / threads = 2.00
+For K from 16 to 128: the compute time changes by +0.0111 ms per added thread on average
+
+==== Task 3: own parallel none_of | N = 10000000 ====
+
+Own parallel none_of
+    K |    compute, ms |      total, ms |  speedup
+    1 |       924.5486 |      6019.3419 |     1.00
+    2 |       442.2370 |      4470.1242 |     2.09
+    3 |       323.2849 |      4937.4510 |     2.86
+    4 |       282.1719 |      4845.3721 |     3.28
+    5 |       193.1792 |      4334.3133 |     4.79
+    6 |       170.0322 |      4345.6039 |     5.44
+    7 |       152.0226 |      4634.5736 |     6.08
+    8 |       130.7608 |      4656.1315 |     7.07
+    9 |       113.1176 |      4243.0409 |     8.17
+   10 |       120.0745 |      4420.8188 |     7.70
+   11 |       102.6551 |      4202.3120 |     9.01
+   12 |        98.4951 |      5023.3126 |     9.39
+   13 |        88.6548 |      4569.2013 |    10.43
+   14 |        82.6225 |      3305.4953 |    11.19
+   15 |        82.4095 |      3365.9909 |    11.22
+   16 |        83.9052 |      3364.6947 |    11.02
+   32 |        84.0507 |      4754.7744 |    11.00
+   64 |        86.1936 |      5028.2103 |    10.73
+  128 |        82.3478 |      4997.2359 |    11.23  <-- best
+Best K = 128 (by compute time): 11.23 times faster than K = 1; hardware threads = 16; K / threads = 8.00
+For K from 16 to 128: the compute time changes by -0.0139 ms per added thread on average
