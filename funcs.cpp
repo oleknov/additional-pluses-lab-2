@@ -4,6 +4,7 @@
 #include <format>
 #include <fstream>
 #include <stdexcept>
+#include <thread>
 
 using namespace std;
 
@@ -145,6 +146,8 @@ void TablePrinter::printDescription(const string& buildLabel) const
 	_out << "What is measured (median of " << RUNS_PER_MEASUREMENT << " runs, milliseconds):\n"
 		<< "  compute - only the algorithm call, the data is already in RAM;\n"
 		<< "  total   - reading the text file, filling RAM, computing and forming the result line\n"
+		<< "Own algorithm: K is the number of threads, speedup is relative to K = 1.\n"
+		<< "Hardware threads: " << cpuThreadCount() << '\n'
 		<< "Build: " << buildLabel << endl;
 }
 
@@ -201,4 +204,93 @@ vector<NamedMeasurement> Experiments::measureAll(const vector<NamedAlgorithm>& a
 		rows.push_back({ algorithm.name, _timer.measureMedian(size, algorithm) });
 	}
 	return rows;
+}
+
+
+size_t cpuThreadCount()
+{
+	return max(1u, thread::hardware_concurrency());
+}
+
+vector<size_t> Experiments::threadCountsToTest(size_t cpuThreads) const
+{
+	vector<size_t> counts;
+	for (size_t k = 1; k <= cpuThreads; ++k)
+	{
+		counts.push_back(k);
+	}
+	for (size_t factor : { 2, 4, 8 })
+	{
+		counts.push_back(factor * cpuThreads);
+	}
+	return counts;
+}
+
+vector<ThreadMeasurement> Experiments::measureThreadCounts(const AlgorithmSet& algorithms, size_t cpuThreads, size_t size) const
+{
+	vector<ThreadMeasurement> rows;
+	for (size_t threadCount : threadCountsToTest(cpuThreads))
+	{
+		rows.push_back({ threadCount, _timer.measureMedian(size, algorithms.threaded(threadCount)) });
+	}
+	return rows;
+}
+
+void TablePrinter::printThreads(const vector<ThreadMeasurement>& rows, size_t cpuThreads) const
+{
+	const auto fastest = ranges::min_element(rows, {}, [](const ThreadMeasurement& row) -> timeT {
+		return row.measurement.computeTime;
+		});
+	printThreadsTable(rows, fastest->threadCount);
+	printFastestThreadCount(rows, *fastest, cpuThreads);
+	printGrowthLaw(rows, cpuThreads);
+	_out << flush;
+}
+
+void TablePrinter::printThreadsTable(const vector<ThreadMeasurement>& rows, size_t fastestThreadCount) const
+{
+	_out << "\nOwn parallel none_of\n";
+	_out << format("{:>5} | {:>14} | {:>14} | {:>8}\n", "K", "compute, ms", "total, ms", "speedup");
+	for (const ThreadMeasurement& row : rows)
+	{
+		const timeT computeTime = row.measurement.computeTime;
+		_out << format("{:>5} | {:>14.4f} | {:>14.4f} | {:>8.2f}{}\n", row.threadCount, computeTime,
+			row.measurement.totalTime, speedupOverOneThread(rows, row),
+			(row.threadCount == fastestThreadCount) ? "  <-- best" : "");
+	}
+}
+
+void TablePrinter::printFastestThreadCount(const vector<ThreadMeasurement>& rows, const ThreadMeasurement& fastest, size_t cpuThreads) const
+{
+	const timeT speedup = speedupOverOneThread(rows, fastest);
+	const double ratio = (double)fastest.threadCount;
+	_out << format("Best K = {} (by compute time): {:.2f} times faster than K = 1; hardware threads = {}; K / threads = {:.2f}\n",
+		fastest.threadCount, speedup, cpuThreads, ratio / cpuThreads);
+}
+
+void TablePrinter::printGrowthLaw(const vector<ThreadMeasurement>& rows, size_t cpuThreads) const
+{
+	const auto first = ranges::find_if(rows, [&](const ThreadMeasurement& row) -> bool {
+		return row.threadCount >= cpuThreads;
+		});
+	const ThreadMeasurement& last = rows.back();
+	const timeT timeChange = last.measurement.computeTime - first->measurement.computeTime;
+	const timeT timePerThread = timeChange / (last.threadCount - first->threadCount);
+	_out << format("For K from {} to {}: the compute time changes by {:+.4f} ms per added thread on average\n",
+		first->threadCount, last.threadCount, timePerThread);
+}
+
+timeT TablePrinter::speedupOverOneThread(const vector<ThreadMeasurement>& rows, const ThreadMeasurement& row) const
+{
+	return rows.front().measurement.computeTime / row.measurement.computeTime;
+}
+
+void Experiments::ownThreadedAlgorithm(const AlgorithmSet& algorithms) const
+{
+	const size_t threads = cpuThreadCount();
+	for (size_t size : SEQUENCE_SIZES)
+	{
+		_printer.printTitle("Task 3: own parallel none_of", size);
+		_printer.printThreads(measureThreadCounts(algorithms, threads, size), threads);
+	}
 }

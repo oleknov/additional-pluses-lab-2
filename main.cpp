@@ -1,3 +1,6 @@
+// MSVC (Microsoft Visual C++), C++23 (/std:c++latest), configuration Release
+// Build without optimization: /Od   Build with maximum optimization: /O2
+// Usage: additional-pluses-lab-2.exe [build label] 
 #include <cmath>
 #include <iostream>
 #include <fstream>
@@ -31,11 +34,17 @@ int main(int argc, char* argv[])
 		Experiments experiments(timer, printer);
 
 		Predicate isNonPositive = [](dataT x) -> bool { return x <= 0; };
-		Predicate isLogGreaterThanX = [](dataT x) -> bool { return log(x) > x; };
+		Predicate complexPredicate = [](dataT x) -> bool {
+			long long v = x;
+			for (int i = 1; i <= 20; ++i) {
+				v = (v * i + x) % 1000003;
+			}
+			return v < 0;
+			};
 
 		const vector<pair<string, Predicate>> predicates = {
 			{ "simple: x <= 0", isNonPositive },
-			{ "complex: ln(x) > x", isLogGreaterThanX }
+			{ "complex: arithmetic loop", complexPredicate }
 		};
 
 		printer.printDescription(buildLabel);
@@ -48,6 +57,7 @@ int main(int argc, char* argv[])
 
 			experiments.libraryWithoutPolicy(algorithms);
 			experiments.libraryWithPolicies(algorithms);
+			experiments.ownThreadedAlgorithm(algorithms);
 		}
 
 		cout << "\nDone. Tables written to " << outputPath << endl;
